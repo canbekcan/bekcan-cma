@@ -60,6 +60,17 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
+// Database auto-migration
+(async () => {
+  try {
+    await pool.query('ALTER TABLE conferences ADD COLUMN IF NOT EXISTS abbreviation VARCHAR(50)');
+    await pool.query("UPDATE conferences SET abbreviation = 'CRCP 2026' WHERE slug = 'bekcan2026' AND abbreviation IS NULL");
+    console.log('Database schema checked and updated successfully.');
+  } catch (err) {
+    console.error('Error running migrations:', err);
+  }
+})();
+
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -99,7 +110,7 @@ app.post('/api/auth/login', async (req, res) => {
 // GET All Conferences (Public)
 app.get('/api/conferences', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, slug, name, start_date, end_date, venue_info FROM conferences ORDER BY start_date DESC');
+    const result = await pool.query('SELECT id, slug, name, abbreviation, start_date, end_date, venue_info, logo_url FROM conferences ORDER BY start_date DESC');
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -169,6 +180,8 @@ app.get('/api/conferences/:slug/schedule', async (req, res) => {
       conference: {
         id: conference.id,
         name: conference.name,
+        abbreviation: conference.abbreviation,
+        logo_url: conference.logo_url,
         dates: Array.from(datesSet).sort(),
         venue: { address: conference.venue_info },
         wifi: { ssid: conference.wifi_ssid, password: conference.wifi_wpa }
@@ -234,13 +247,13 @@ app.get('/api/admin/conferences', authenticateToken, async (req, res) => {
 // CREATE Conference (Superadmin only)
 app.post('/api/admin/conferences', authenticateToken, async (req, res) => {
   if (req.user.role !== 'superadmin') return res.status(403).json({ error: 'Forbidden' });
-  const { slug, name, start_date, end_date, venue_info, wifi_ssid, wifi_wpa } = req.body;
+  const { slug, name, abbreviation, start_date, end_date, venue_info, wifi_ssid, wifi_wpa, logo_url } = req.body;
   const startDateVal = start_date === '' ? null : start_date;
   const endDateVal = end_date === '' ? null : end_date;
   try {
     const result = await pool.query(
-      'INSERT INTO conferences (slug, name, start_date, end_date, venue_info, wifi_ssid, wifi_wpa) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [slug, name, startDateVal, endDateVal, venue_info, wifi_ssid, wifi_wpa]
+      'INSERT INTO conferences (slug, name, abbreviation, start_date, end_date, venue_info, wifi_ssid, wifi_wpa, logo_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [slug, name, abbreviation || null, startDateVal, endDateVal, venue_info, wifi_ssid, wifi_wpa, logo_url || null]
     );
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }

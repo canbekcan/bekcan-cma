@@ -76,9 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = {
             name: document.getElementById('conf-name').value,
             slug: document.getElementById('conf-slug').value,
+            abbreviation: document.getElementById('conf-abbrev').value,
             start_date: document.getElementById('conf-start').value,
             end_date: document.getElementById('conf-end').value,
             venue_info: document.getElementById('conf-venue').value,
+            logo_url: document.getElementById('conf-logo').value,
             wifi_ssid: document.getElementById('conf-wifi-ssid').value,
             wifi_wpa: document.getElementById('conf-wifi-wpa').value
         };
