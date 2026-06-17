@@ -9,6 +9,7 @@ CREATE TABLE conferences (
     venue_info TEXT,
     wifi_ssid VARCHAR(100),
     wifi_wpa VARCHAR(100),
+    logo_url VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -79,8 +80,8 @@ VALUES ('admin', '$2b$10$wE/.7x41L6Jb9iXhGWe5wObiZ8xO8s.RQKz3B/5E1bC6qO0r1G4sW',
 -- ==============================================
 -- SEED DATA FROM SCHEDULE.JSON
 -- ==============================================
-INSERT INTO conferences (slug, name, start_date, end_date, venue_info, wifi_ssid, wifi_wpa) 
-VALUES ('bekcan2026', 'CRCP 2026 Konferansı', '2026-06-17', '2026-06-19', 'İstanbul Kongre Merkezi', 'BEKCAN_WIFI', 'bekcan_welcome')
+INSERT INTO conferences (slug, name, start_date, end_date, venue_info, wifi_ssid, wifi_wpa, logo_url) 
+VALUES ('bekcan2026', 'CRCP 2026 Konferansı', '2026-06-17', '2026-06-19', 'İstanbul Kongre Merkezi', 'BEKCAN_WIFI', 'bekcan_welcome', 'https://bekcan.com/uploads/default/original/1X/d463e22bb7c3c345f7b1c32c8a12a473a500ff7d.png')
 ON CONFLICT (slug) DO NOTHING;
 INSERT INTO speakers (conference_id, speaker_ref, full_name, title, institution, email, bio, avatar_url) 
 VALUES ((SELECT id FROM conferences WHERE slug = 'bekcan2026'), 'sp1', 'Prof. Dr. Aylin Yılmaz', 'Yapay Zeka Enstitüsü Direktörü', 'Doğu Akdeniz Üniversitesi', 'aylin.yilmaz@emu.edu.tr', 'Prof. Dr. Aylin Yılmaz, yapay zeka, derin öğrenme ve veri madenciliği alanında öncü çalışmalara imza atmıştır. Doğu Akdeniz Üniversitesi''nde (EMU) araştırma grubu lideridir.', '')
