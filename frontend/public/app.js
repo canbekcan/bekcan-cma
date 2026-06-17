@@ -211,12 +211,12 @@ async function init() {
   updateViews();
   startClockTick();
   
-  // Show BEKCAN pop-up branding overlay on startup once per session
+  // Show BEKCAN pop-up branding overlay on startup once per session (delayed to 10 seconds)
   if (!storage.sessionGet('bekcan_popup_shown', false) && el.bekcanPopup) {
     setTimeout(() => {
       el.bekcanPopup.classList.add('active');
       storage.sessionSet('bekcan_popup_shown', 'true');
-    }, 1200);
+    }, 10000);
   }
 }
 
