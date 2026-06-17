@@ -1,12 +1,13 @@
-const CACHE_NAME = 'bekcan-cma-v1';
+const CACHE_NAME = 'bekcan-cma-v2';
 const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './schedule.json',
-  './manifest.json',
-  './icon.png'
+  '/',
+  '/index.html',
+  '/schedule.html',
+  '/styles.css',
+  '/app.js',
+  '/landing.js',
+  '/manifest.json',
+  '/icon.png'
 ];
 
 // Install Event - caching assets
@@ -35,20 +36,31 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - cache-first with network fallback
+// Fetch Event
 self.addEventListener('fetch', (event) => {
+  // Navigation requests (HTML pages) - network-first, offline fallback to /schedule.html
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match('/schedule.html') || caches.match('/index.html');
+      })
+    );
+    return;
+  }
+
+  // Static assets - cache-first with network fallback
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch fresh data in the background if possible (stale-while-revalidate for JSON/JS/CSS)
-        if (event.request.url.includes('schedule.json') || event.request.url.includes('app.js') || event.request.url.includes('styles.css')) {
+        // Fetch fresh data in the background if possible (stale-while-revalidate for JS/CSS)
+        if (event.request.url.includes('app.js') || event.request.url.includes('styles.css') || event.request.url.includes('landing.js')) {
           fetch(event.request)
             .then((networkResponse) => {
               if (networkResponse.status === 200) {
                 caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
               }
             })
-            .catch(() => { /* Ignore fetch errors when offline */ });
+            .catch(() => { /* Ignore fetch errors */ });
         }
         return cachedResponse;
       }
