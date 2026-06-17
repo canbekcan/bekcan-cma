@@ -130,6 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const conferences = await res.json();
             conferencesList.innerHTML = '';
             
+            if (!Array.isArray(conferences)) {
+                console.error('Conferences response is not an array:', conferences);
+                return;
+            }
+            
             conferences.forEach(conf => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -260,6 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const speakers = await res.json();
         const list = document.getElementById('speakers-list');
         list.innerHTML = '';
+        
+        if (!Array.isArray(speakers)) {
+            console.error('Speakers response is not an array:', speakers);
+            return;
+        }
+        
         speakers.forEach(s => {
             list.innerHTML += `<li class="p-3 flex justify-between items-center">
                 <div><span class="font-bold">${esc(s.full_name)}</span> (${esc(s.speaker_ref)}) - ${esc(s.title || '')}</div>
@@ -298,6 +309,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const sessions = await res.json();
         const list = document.getElementById('sessions-list');
         list.innerHTML = '';
+        
+        if (!Array.isArray(sessions)) {
+            console.error('Sessions response is not an array:', sessions);
+            return;
+        }
+        
         sessions.forEach(s => {
             list.innerHTML += `<li class="p-3 flex justify-between items-center">
                 <div><span class="font-bold">${esc(s.title_tr)}</span> (${esc(s.session_ref)}) - ${new Date(s.start_time).toLocaleString()}</div>

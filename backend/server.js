@@ -234,10 +234,12 @@ app.get('/api/admin/conferences', authenticateToken, async (req, res) => {
 app.post('/api/admin/conferences', authenticateToken, async (req, res) => {
   if (req.user.role !== 'superadmin') return res.status(403).json({ error: 'Forbidden' });
   const { slug, name, start_date, end_date, venue_info, wifi_ssid, wifi_wpa } = req.body;
+  const startDateVal = start_date === '' ? null : start_date;
+  const endDateVal = end_date === '' ? null : end_date;
   try {
     const result = await pool.query(
       'INSERT INTO conferences (slug, name, start_date, end_date, venue_info, wifi_ssid, wifi_wpa) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [slug, name, start_date, end_date, venue_info, wifi_ssid, wifi_wpa]
+      [slug, name, startDateVal, endDateVal, venue_info, wifi_ssid, wifi_wpa]
     );
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -275,6 +277,8 @@ app.post('/api/admin/conferences/:id/import-json', authenticateToken, async (req
 
   const data = req.body; // Expects JSON identical to schedule.json structure
   try {
+    await pool.query('BEGIN');
+    
     // Clear existing data for this conference
     await pool.query('DELETE FROM sessions WHERE conference_id = $1', [confId]);
     await pool.query('DELETE FROM speakers WHERE conference_id = $1', [confId]);
@@ -284,7 +288,17 @@ app.post('/api/admin/conferences/:id/import-json', authenticateToken, async (req
       for (const sp of data.speakers) {
         await pool.query(
           "INSERT INTO speakers (conference_id, speaker_ref, full_name, title, institution, email, phone, bio, avatar_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-          [confId, sp.id, sp.name, sp.title, sp.institution, sp.email, sp.phone, sp.bio, sp.avatar]
+          [
+            confId,
+            sp.id,
+            sp.name,
+            sp.title_tr || sp.title || '',
+            sp.institution_tr || sp.institution || '',
+            sp.contact || sp.email || '',
+            sp.phone || '',
+            sp.bio_tr || sp.bio || '',
+            sp.avatar || sp.avatar_url || ''
+          ]
         );
       }
     }
@@ -294,7 +308,7 @@ app.post('/api/admin/conferences/:id/import-json', authenticateToken, async (req
       for (const sess of data.sessions) {
         const sessInsert = await pool.query(
           "INSERT INTO sessions (conference_id, session_ref, title_tr, title_en, description_tr, description_en, start_time, end_time, room, category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
-          [confId, sess.id, sess.title_tr, sess.title_en, sess.description_tr, sess.description_en, sess.start, sess.end, sess.room, sess.category]
+          [confId, sess.id, sess.title_tr, sess.title_en, sess.description_tr, sess.description_en, sess.start || null, sess.end || null, sess.room, sess.category]
         );
         const sessId = sessInsert.rows[0].id;
 
@@ -309,8 +323,11 @@ app.post('/api/admin/conferences/:id/import-json', authenticateToken, async (req
         }
       }
     }
+    
+    await pool.query('COMMIT');
     res.json({ success: true, message: 'Data imported successfully' });
   } catch (err) {
+    await pool.query('ROLLBACK');
     console.error(err);
     res.status(500).json({ error: err.message });
   }
@@ -382,11 +399,13 @@ app.post('/api/admin/conferences/:id/sessions', authenticateToken, async (req, r
   const confId = req.params.id;
   if (req.user.role !== 'superadmin' && String(req.user.conference_id) !== String(confId)) return res.status(403).json({ error: 'Forbidden' });
   const { session_ref, title_tr, title_en, description_tr, description_en, start_time, end_time, room, category, speaker_ids } = req.body;
+  const startTimeVal = start_time === '' ? null : start_time;
+  const endTimeVal = end_time === '' ? null : end_time;
   try {
     await pool.query('BEGIN');
     const sessInsert = await pool.query(
       'INSERT INTO sessions (conference_id, session_ref, title_tr, title_en, description_tr, description_en, start_time, end_time, room, category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-      [confId, session_ref, title_tr, title_en, description_tr, description_en, start_time, end_time, room, category]
+      [confId, session_ref, title_tr, title_en, description_tr, description_en, startTimeVal, endTimeVal, room, category]
     );
     const newSession = sessInsert.rows[0];
     

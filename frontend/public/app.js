@@ -206,6 +206,21 @@ async function init() {
     state.selectedDay = state.conference.dates[0];
   }
   
+  // Ensure only the default schedule view and nav button are active on startup
+  state.activeTab = 'view-schedule';
+  if (el.bottomNavItems) {
+    el.bottomNavItems.forEach(n => {
+      if (n.dataset.target === 'view-schedule') n.classList.add('active');
+      else n.classList.remove('active');
+    });
+  }
+  if (el.views) {
+    el.views.forEach(view => {
+      if (view.id === 'view-schedule') view.classList.add('active');
+      else view.classList.remove('active');
+    });
+  }
+
   renderDaySelector();
   renderCategoryCarousel();
   updateViews();
