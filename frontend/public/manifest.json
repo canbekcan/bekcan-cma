@@ -1,0 +1,17 @@
+{
+  "name": "BEKCAN Conference Management Application (CMA)",
+  "short_name": "BEKCAN CMA",
+  "description": "Konferans Yönetimi ve Takip Uygulaması - BEKCAN Enstitüsü",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

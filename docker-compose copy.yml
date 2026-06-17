@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: bekcan_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: post_user
+      POSTGRES_PASSWORD: post_password
+      POSTGRES_DB: post_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: bekcan_web
+    restart: always
+    environment:
+      - DB_HOST=db
+      - DB_PORT=1234
+      - DB_USER=db_user
+      - DB_PASSWORD=db_password
+      - DB_NAME=db_name
+      - PORT=4000
+      - JWT_SECRET=super_secret_jwt_key_please_change
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEKCAN API Dokümantasyonu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        pre { background-color: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 0.5rem; margin-bottom: 1.5rem; }
+        code { font-family: monospace; }
+        .endpoint { font-weight: bold; padding: 0.2rem 0.4rem; border-radius: 0.25rem; }
+        .get { background-color: #dbeafe; color: #1e40af; }
+        .post { background-color: #dcfce3; color: #166534; }
+        .del { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans leading-relaxed">
+    <nav class="bg-blue-700 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">BEKCAN API Dokümantasyonu</h1>
+            <a href="/" class="text-blue-200 hover:text-white">Uygulamaya Dön</a>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto p-6 md:p-8">
+        <section class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-2">Genel Bakış</h2>
+            <p class="mb-4">Bu dokümantasyon, BEKCAN Çoklu Konferans (Multi-Tenant) Yönetim Sistemi API'sinin nasıl kullanılacağını açıklar. API iki ana kategoriye ayrılır:</p>
+            <ul class="list-disc ml-6 mb-4 space-y-2">
+                <li><strong>Public API:</strong> Herkese açık verileri çeker (Konferans takvimi, konuşmacılar vb.). Kimlik doğrulama gerektirmez.</li>
+                <li><strong>Admin API:</strong> Konferans verilerini yönetmek (CRUD) için kullanılır. JWT (JSON Web Token) kimlik doğrulaması gerektirir.</li>
+            </ul>
+        </section>
+
+        <section class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-2">Kimlik Doğrulama (Admin)</h2>
+            <p class="mb-4">Admin endpoint'lerine istek yaparken, Authorization header'ı içerisinde <code>Bearer &lt;TOKEN&gt;</code> göndermeniz gerekmektedir.</p>
+            
+            <h3 class="text-lg font-bold mt-6 mb-2"><span class="endpoint post">POST</span> /api/auth/login</h3>
+            <p class="text-sm mb-2">Kullanıcı adı ve şifre ile JWT token alır.</p>
+            <p class="font-semibold text-sm mt-4">Örnek İstek (cURL):</p>
+<pre><code>curl -X POST https://conf.bekcan.com/api/auth/login \
+-H "Content-Type: application/json" \
+-d '{"username": "admin", "password": "admin123"}'</code></pre>
+
+            <p class="font-semibold text-sm">Başarılı Yanıt:</p>
+<pre><code>{
+  "token": "eyJhbGciOiJIUzI1NiIsInR...",
+  "role": "superadmin",
+  "conference_id": null
+}</code></pre>
+        </section>
+
+        <section class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-2">Public API (Açık Erişim)</h2>
+            
+            <h3 class="text-lg font-bold mt-6 mb-2"><span class="endpoint get">GET</span> /api/conferences/:slug/schedule</h3>
+            <p class="text-sm mb-2">Belirtilen kısa ada (slug) sahip konferansın tüm oturum ve konuşmacı verilerini getirir. Mobil uygulama (Frontend) ana ekranda bu veriyi kullanır.</p>
+            <p class="font-semibold text-sm mt-4">Örnek İstek:</p>
+<pre><code>curl -X GET https://conf.bekcan.com/api/conferences/bekcan2026/schedule</code></pre>
+
+            <h3 class="text-lg font-bold mt-6 mb-2"><span class="endpoint post">POST</span> /api/conferences/:slug/attendee</h3>
+            <p class="text-sm mb-2">Cihaz kimliği ile yeni katılımcı kaydı oluşturur.</p>
+<pre><code>curl -X POST https://conf.bekcan.com/api/conferences/bekcan2026/attendee \
+-H "Content-Type: application/json" \
+-d '{
+  "device_id": "uuid-v4-string",
+  "full_name": "Can Bekcan",
+  "email": "info@bekcan.com"
+}'</code></pre>
+        </section>
+
+        <section class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-2">Admin API - Veri Yönetimi</h2>
+            <p class="mb-4 text-sm bg-yellow-50 p-3 rounded border border-yellow-200"><strong>Not:</strong> Organizatör rolündeki kullanıcılar sadece kendilerine atanmış <code>conference_id</code> için işlem yapabilirler. Aşağıdaki örneklerde <code>:id</code> konferans kimliğidir.</p>
+
+            <h3 class="text-lg font-bold mt-6 mb-2"><span class="endpoint post">POST</span> /api/admin/conferences/:id/speakers</h3>
+            <p class="text-sm mb-2">Konferansa yeni konuşmacı ekler.</p>
+<pre><code>curl -X POST https://conf.bekcan.com/api/admin/conferences/1/speakers \
+-H "Authorization: Bearer &lt;TOKEN&gt;" \
+-H "Content-Type: application/json" \
+-d '{
+  "speaker_ref": "sp1",
+  "full_name": "Dr. Ahmet Yılmaz",
+  "title": "Doçent",
+  "institution": "Örnek Üniversitesi"
+}'</code></pre>
+
+            <h3 class="text-lg font-bold mt-6 mb-2"><span class="endpoint post">POST</span> /api/admin/conferences/:id/sessions</h3>
+            <p class="text-sm mb-2">Konferansa yeni oturum ekler ve konuşmacıları bağlar.</p>
+<pre><code>curl -X POST https://conf.bekcan.com/api/admin/conferences/1/sessions \
+-H "Authorization: Bearer &lt;TOKEN&gt;" \
+-H "Content-Type: application/json" \
+-d '{
+  "session_ref": "s1",
+  "title_tr": "Yapay Zeka ve Gelecek",
+  "title_en": "AI and the Future",
+  "start_time": "2026-06-18T09:00:00Z",
+  "end_time": "2026-06-18T10:30:00Z",
+  "room": "Salon A",
+  "category": "Keynote",
+  "speaker_ids": ["sp1"]
+}'</code></pre>
+
+            <h3 class="text-lg font-bold mt-6 mb-2"><span class="endpoint del">DELETE</span> /api/admin/speakers/:id</h3>
+            <p class="text-sm mb-2">Mevcut bir konuşmacıyı (ve bağlı olduğu session ilişkilerini) siler.</p>
+<pre><code>curl -X DELETE https://conf.bekcan.com/api/admin/speakers/5 \
+-H "Authorization: Bearer &lt;TOKEN&gt;"</code></pre>
+
+            <h3 class="text-lg font-bold mt-6 mb-2"><span class="endpoint post">POST</span> /api/admin/conferences/:id/import-json</h3>
+            <p class="text-sm mb-2">Mevcut bir <code>schedule.json</code> dosyasını doğrudan veritabanına aktarır (Mevcut verileri ezer!).</p>
+<pre><code>curl -X POST https://conf.bekcan.com/api/admin/conferences/1/import-json \
+-H "Authorization: Bearer &lt;TOKEN&gt;" \
+-H "Content-Type: application/json" \
+-d @schedule.json</code></pre>
+        </section>
+    </main>
+</body>
+</html>

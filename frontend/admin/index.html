@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conference Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+    
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+            <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Admin Login</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="username" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="password" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Login</button>
+                <p id="login-error" class="text-red-500 text-sm mt-3 hidden"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen" class="hidden min-h-screen flex flex-col">
+        <!-- Navbar -->
+        <nav class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
+            <h1 class="text-xl font-bold">BEKCAN Conference Admin</h1>
+            <div class="flex items-center gap-4">
+                <span id="user-role-badge" class="bg-blue-800 px-3 py-1 rounded text-sm"></span>
+                <button id="logout-btn" class="bg-blue-500 hover:bg-blue-700 px-4 py-2 rounded transition">Logout</button>
+            </div>
+        </nav>
+
+        <main class="flex-grow p-8 max-w-6xl mx-auto w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">Conferences</h2>
+                <button id="show-create-conf-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition hidden shadow">+ New Conference</button>
+            </div>
+
+            <!-- Conferences List -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="conferences-list" class="bg-white divide-y divide-gray-200">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Create Conference Form (Hidden by default) -->
+            <div id="create-conf-section" class="hidden mt-8 bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-bold mb-4 border-b pb-2">Create New Conference</h3>
+                <form id="create-conf-form" class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Name</label>
+                        <input type="text" id="conf-name" class="w-full border rounded p-2" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Slug (URL path)</label>
+                        <input type="text" id="conf-slug" class="w-full border rounded p-2" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Start Date</label>
+                        <input type="date" id="conf-start" class="w-full border rounded p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">End Date</label>
+                        <input type="date" id="conf-end" class="w-full border rounded p-2">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium mb-1">Venue Info</label>
+                        <textarea id="conf-venue" class="w-full border rounded p-2"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Wi-Fi SSID</label>
+                        <input type="text" id="conf-wifi-ssid" class="w-full border rounded p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Wi-Fi Password</label>
+                        <input type="text" id="conf-wifi-wpa" class="w-full border rounded p-2">
+                    </div>
+                    <div class="col-span-2 flex justify-end gap-2 mt-4">
+                        <button type="button" id="cancel-create-conf" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Conference</button>
+                    </div>
+                </form>
+            </div>
+            
+            <p class="mt-8 text-sm text-gray-500 text-center">Note: Sessions and Speakers can be managed via API or extended UI in future updates. Currently synced via schedule.json migration.</p>
+        
+            <!-- Manage Conference Section (Hidden by default) -->
+            <div id="manage-conf-section" class="hidden mt-8 bg-white p-6 rounded-lg shadow">
+                <div class="flex justify-between items-center mb-6 border-b pb-2">
+                    <h3 class="text-2xl font-bold" id="manage-conf-title">Manage Conference</h3>
+                    <button id="back-to-dashboard" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Back</button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex border-b mb-6">
+                    <button id="tab-speakers" class="px-6 py-2 border-b-2 border-blue-600 text-blue-600 font-bold focus:outline-none">Speakers</button>
+                    <button id="tab-sessions" class="px-6 py-2 border-b-2 border-transparent text-gray-500 hover:text-blue-600 focus:outline-none">Sessions</button>
+                </div>
+
+                <!-- Speakers View -->
+                <div id="view-speakers">
+                    <h4 class="text-lg font-bold mb-4">Add Speaker</h4>
+                    <form id="add-speaker-form" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-gray-50 p-4 rounded border">
+                        <div><label class="block text-xs">Ref ID (e.g. sp1)</label><input type="text" id="sp-ref" class="w-full border rounded p-1 text-sm" required></div>
+                        <div><label class="block text-xs">Full Name</label><input type="text" id="sp-name" class="w-full border rounded p-1 text-sm" required></div>
+                        <div><label class="block text-xs">Title</label><input type="text" id="sp-title" class="w-full border rounded p-1 text-sm"></div>
+                        <div><label class="block text-xs">Institution</label><input type="text" id="sp-inst" class="w-full border rounded p-1 text-sm"></div>
+                        <div><label class="block text-xs">Email</label><input type="email" id="sp-email" class="w-full border rounded p-1 text-sm"></div>
+                        <div><label class="block text-xs">Phone</label><input type="text" id="sp-phone" class="w-full border rounded p-1 text-sm"></div>
+                        <div><label class="block text-xs">Avatar URL</label><input type="text" id="sp-avatar" class="w-full border rounded p-1 text-sm"></div>
+                        <div class="col-span-2 md:col-span-4"><label class="block text-xs">Bio</label><textarea id="sp-bio" class="w-full border rounded p-1 text-sm"></textarea></div>
+                        <div class="col-span-2 md:col-span-4 flex justify-end"><button type="submit" class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Add Speaker</button></div>
+                    </form>
+                    <h4 class="text-lg font-bold mb-2">Existing Speakers</h4>
+                    <ul id="speakers-list" class="divide-y divide-gray-200 border rounded"></ul>
+                </div>
+
+                <!-- Sessions View -->
+                <div id="view-sessions" class="hidden">
+                    <h4 class="text-lg font-bold mb-4">Add Session</h4>
+                    <form id="add-session-form" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-gray-50 p-4 rounded border">
+                        <div><label class="block text-xs">Ref ID (e.g. s1)</label><input type="text" id="se-ref" class="w-full border rounded p-1 text-sm" required></div>
+                        <div><label class="block text-xs">Title (TR)</label><input type="text" id="se-title-tr" class="w-full border rounded p-1 text-sm" required></div>
+                        <div><label class="block text-xs">Title (EN)</label><input type="text" id="se-title-en" class="w-full border rounded p-1 text-sm"></div>
+                        <div><label class="block text-xs">Room</label><input type="text" id="se-room" class="w-full border rounded p-1 text-sm"></div>
+                        <div><label class="block text-xs">Category</label><input type="text" id="se-cat" class="w-full border rounded p-1 text-sm"></div>
+                        <div><label class="block text-xs">Start Time</label><input type="datetime-local" id="se-start" class="w-full border rounded p-1 text-sm" required></div>
+                        <div><label class="block text-xs">End Time</label><input type="datetime-local" id="se-end" class="w-full border rounded p-1 text-sm" required></div>
+                        <div class="col-span-2 md:col-span-4"><label class="block text-xs">Speaker Refs (comma separated e.g. sp1,sp2)</label><input type="text" id="se-speakers" class="w-full border rounded p-1 text-sm"></div>
+                        <div class="col-span-2 md:col-span-2"><label class="block text-xs">Description (TR)</label><textarea id="se-desc-tr" class="w-full border rounded p-1 text-sm"></textarea></div>
+                        <div class="col-span-2 md:col-span-2"><label class="block text-xs">Description (EN)</label><textarea id="se-desc-en" class="w-full border rounded p-1 text-sm"></textarea></div>
+                        <div class="col-span-2 md:col-span-4 flex justify-end"><button type="submit" class="bg-blue-600 text-white px-4 py-1 rounded text-sm">Add Session</button></div>
+                    </form>
+                    <h4 class="text-lg font-bold mb-2">Existing Sessions</h4>
+                    <ul id="sessions-list" class="divide-y divide-gray-200 border rounded"></ul>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/admin/admin.js"></script>
+</body>
+</html>
