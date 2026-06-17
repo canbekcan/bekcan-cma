@@ -4,35 +4,41 @@ services:
   db:
     image: postgres:15-alpine
     container_name: bekcan_postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: post_user
-      POSTGRES_PASSWORD: post_password
-      POSTGRES_DB: post_db
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_password
+      POSTGRES_DB: db_name
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432" # Veritabanını sadece sunucu içine (localhost) açar, dışarıdan erişimi keser.
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U db_user -d db_name"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   web:
     build: 
       context: .
       dockerfile: Dockerfile
     container_name: bekcan_web
-    restart: always
+    restart: unless-stopped
     environment:
       - DB_HOST=db
-      - DB_PORT=1234
+      - DB_PORT=5432 # İç ağda Postgres varsayılan portu 5432'dir, 1234 değil.
       - DB_USER=db_user
       - DB_PASSWORD=db_password
       - DB_NAME=db_name
       - PORT=4000
       - JWT_SECRET=super_secret_jwt_key_please_change
     ports:
-      - "4000:4000"
+      - "127.0.0.1:4000:4000" # YALNIZCA Nginx'in erişebilmesi için localhost'a bağlanır.
     depends_on:
-      - db
+      db:
+        condition: service_healthy # Web servisi, DB tam olarak hazır olmadan asla başlamaz (Crash'i önler).
 
 volumes:
   pgdata:

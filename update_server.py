@@ -112,7 +112,7 @@ content = content.replace('// GET Attendees\n', new_routes)
 
 # Also add fallback route for /api-docs to api-docs.html
 docs_route = """// Fallback routing for API Docs
-app.get('/api-docs*', (req, res) => {
+app.use('/api-docs', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/api-docs.html'));
 });
 
