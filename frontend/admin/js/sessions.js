@@ -6,11 +6,11 @@
  */
 
 async function loadSessions() {
-  if (!adminState.currentConfId) return;
+  if (!window.adminState.currentConfId) return;
   
   try {
-    const res = await fetch(`/api/admin/conferences/${adminState.currentConfId}/sessions`, {
-      headers: { 'Authorization': `Bearer ${adminState.token}` }
+    const res = await fetch(`/api/admin/conferences/${window.adminState.currentConfId}/sessions`, {
+      headers: { 'Authorization': `Bearer ${window.adminState.token}` }
     });
     const sessions = await res.json();
     const list = document.getElementById('sessions-list');
@@ -24,13 +24,23 @@ async function loadSessions() {
     
     sessions.forEach(s => {
       const timeStr = s.start_time ? new Date(s.start_time).toLocaleString() : 'N/A';
-      list.innerHTML += `<li class="p-3 flex justify-between items-center border-b">
+      const li = document.createElement('li');
+      li.className = 'item-list-row';
+      li.innerHTML = `
         <div>
-          <span class="font-bold">${esc(s.title_tr)}</span> 
-          (${esc(s.session_ref)}) - ${esc(timeStr)}
+          <span class="title-bold">${esc(s.title_tr)}</span> 
+          (${esc(s.session_ref)}) - <span class="sub-text">${esc(timeStr)}</span>
         </div>
-        <button class="text-red-500 text-sm hover:underline" onclick="delSession(${s.id})">Delete</button>
-      </li>`;
+        <button class="btn btn-danger btn-sm delete-se-btn">Delete</button>
+      `;
+
+      // Safe, dynamic event binding
+      const delBtn = li.querySelector('.delete-se-btn');
+      if (delBtn) {
+        delBtn.addEventListener('click', () => delSession(s.id));
+      }
+
+      list.appendChild(li);
     });
   } catch (err) {
     console.error('Failed to load sessions:', err);
@@ -43,7 +53,7 @@ window.delSession = async function(id) {
   try {
     const res = await fetch(`/api/admin/sessions/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${adminState.token}` }
+      headers: { 'Authorization': `Bearer ${window.adminState.token}` }
     });
     if (res.ok) {
       loadSessions();
@@ -75,11 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       
       try {
-        const res = await fetch(`/api/admin/conferences/${adminState.currentConfId}/sessions`, {
+        const res = await fetch(`/api/admin/conferences/${window.adminState.currentConfId}/sessions`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminState.token}`
+            'Authorization': `Bearer ${window.adminState.token}`
           },
           body: JSON.stringify(payload)
         });

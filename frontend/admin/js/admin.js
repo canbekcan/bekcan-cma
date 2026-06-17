@@ -1,12 +1,12 @@
 /**
  * File: frontend/admin/js/admin.js
- * Description: Main initializer of the admin panel. Manages global adminState, navigation tabs, back button listeners, and helper utility wrappers.
+ * Description: Main initializer of the admin panel. Manages global adminState on the window object, navigation tabs, back button listeners, and helper utility wrappers.
  * Version: 1.1.0
  * Project: BEKCAN CMA (Conference Management App)
  */
 
-// Shared global admin state
-const adminState = {
+// Shared global admin state registered on the window object for browser compatibility
+window.adminState = {
   token: localStorage.getItem('admin_token'),
   role: localStorage.getItem('admin_role'),
   currentConfId: null
@@ -24,9 +24,9 @@ function esc(str) {
 window.manageConf = function(id, name) {
   const manageSection = document.getElementById('manage-conf-section');
   const manageTitle = document.getElementById('manage-conf-title');
-  const listWrapper = document.querySelector('.overflow-hidden');
+  const listWrapper = document.getElementById('conferences-table-wrapper');
 
-  adminState.currentConfId = id;
+  window.adminState.currentConfId = id;
   if (manageTitle) manageTitle.textContent = `Manage: ${esc(name)}`;
   if (listWrapper) listWrapper.classList.add('hidden'); // hide conferences table
   if (manageSection) manageSection.classList.remove('hidden');
@@ -37,7 +37,7 @@ window.manageConf = function(id, name) {
 
 document.addEventListener('DOMContentLoaded', () => {
   const manageSection = document.getElementById('manage-conf-section');
-  const listWrapper = document.querySelector('.overflow-hidden');
+  const listWrapper = document.getElementById('conferences-table-wrapper');
   const backToDashboard = document.getElementById('back-to-dashboard');
 
   if (backToDashboard) {
@@ -55,19 +55,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (tabSpeakers && tabSessions && viewSpeakers && viewSessions) {
     tabSpeakers.addEventListener('click', () => {
-      tabSpeakers.classList.add('border-blue-600', 'text-blue-600');
-      tabSpeakers.classList.remove('border-transparent', 'text-gray-500');
-      tabSessions.classList.remove('border-blue-600', 'text-blue-600');
-      tabSessions.classList.add('border-transparent', 'text-gray-500');
+      tabSpeakers.classList.add('active');
+      tabSessions.classList.remove('active');
       viewSpeakers.classList.remove('hidden');
       viewSessions.classList.add('hidden');
     });
 
     tabSessions.addEventListener('click', () => {
-      tabSessions.classList.add('border-blue-600', 'text-blue-600');
-      tabSessions.classList.remove('border-transparent', 'text-gray-500');
-      tabSpeakers.classList.remove('border-blue-600', 'text-blue-600');
-      tabSpeakers.classList.add('border-transparent', 'text-gray-500');
+      tabSessions.classList.add('active');
+      tabSpeakers.classList.remove('active');
       viewSessions.classList.remove('hidden');
       viewSpeakers.classList.add('hidden');
     });

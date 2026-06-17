@@ -14,11 +14,11 @@ async function showDashboard() {
   if (dashboardScreen) dashboardScreen.classList.remove('hidden');
   
   const roleBadge = document.getElementById('user-role-badge');
-  if (roleBadge && adminState.role) {
-    roleBadge.textContent = adminState.role.toUpperCase();
+  if (roleBadge && window.adminState.role) {
+    roleBadge.textContent = window.adminState.role.toUpperCase();
   }
   
-  if (showCreateBtn && adminState.role === 'superadmin') {
+  if (showCreateBtn && window.adminState.role === 'superadmin') {
     showCreateBtn.classList.remove('hidden');
   }
   
@@ -31,7 +31,7 @@ async function loadConferences() {
 
   try {
     const res = await fetch('/api/admin/conferences', {
-      headers: { 'Authorization': `Bearer ${adminState.token}` }
+      headers: { 'Authorization': `Bearer ${window.adminState.token}` }
     });
     
     if (res.status === 401 || res.status === 403) {
@@ -57,11 +57,28 @@ async function loadConferences() {
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${esc(conf.start_date ? conf.start_date.split('T')[0] : '')} - ${esc(conf.end_date ? conf.end_date.split('T')[0] : '')}</td>
         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-          <button class="text-blue-600 hover:text-blue-900 ml-4 font-bold" onclick="manageConf(${conf.id}, '${esc(conf.name)}')">Manage</button>
-          ${adminState.role === 'superadmin' ? `<button class="text-green-600 hover:text-green-900 ml-4" onclick="createUser(${conf.id})">Add User</button>` : ''}
-          ${adminState.role === 'superadmin' ? `<button class="text-red-600 hover:text-red-900 ml-4" onclick="deleteConf(${conf.id})">Delete</button>` : ''}
+          <button class="btn btn-primary btn-sm manage-btn">Manage</button>
+          ${window.adminState.role === 'superadmin' ? `<button class="btn btn-success btn-sm add-user-btn" style="margin-left: 8px;">Add User</button>` : ''}
+          ${window.adminState.role === 'superadmin' ? `<button class="btn btn-danger btn-sm delete-btn" style="margin-left: 8px;">Delete</button>` : ''}
         </td>
       `;
+
+      // Safe, quote-friendly event listeners
+      const manageBtn = tr.querySelector('.manage-btn');
+      if (manageBtn) {
+        manageBtn.addEventListener('click', () => manageConf(conf.id, conf.name));
+      }
+
+      const addUserBtn = tr.querySelector('.add-user-btn');
+      if (addUserBtn) {
+        addUserBtn.addEventListener('click', () => createUser(conf.id));
+      }
+
+      const deleteBtn = tr.querySelector('.delete-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => deleteConf(conf.id));
+      }
+
       conferencesList.appendChild(tr);
     });
   } catch (err) {
@@ -81,7 +98,7 @@ window.createUser = async function(confId) {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${adminState.token}`
+        'Authorization': `Bearer ${window.adminState.token}`
       },
       body: JSON.stringify({ username, password, role: 'organizer', conference_id: confId })
     });
@@ -97,7 +114,7 @@ window.deleteConf = async function(id) {
   try {
     const res = await fetch(`/api/admin/conferences/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${adminState.token}` }
+      headers: { 'Authorization': `Bearer ${window.adminState.token}` }
     });
     if (res.ok) {
       loadConferences();
@@ -148,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminState.token}`
+            'Authorization': `Bearer ${window.adminState.token}`
           },
           body: JSON.stringify(payload)
         });

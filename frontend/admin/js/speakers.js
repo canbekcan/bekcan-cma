@@ -6,11 +6,11 @@
  */
 
 async function loadSpeakers() {
-  if (!adminState.currentConfId) return;
+  if (!window.adminState.currentConfId) return;
   
   try {
-    const res = await fetch(`/api/admin/conferences/${adminState.currentConfId}/speakers`, {
-      headers: { 'Authorization': `Bearer ${adminState.token}` }
+    const res = await fetch(`/api/admin/conferences/${window.adminState.currentConfId}/speakers`, {
+      headers: { 'Authorization': `Bearer ${window.adminState.token}` }
     });
     const speakers = await res.json();
     const list = document.getElementById('speakers-list');
@@ -23,13 +23,23 @@ async function loadSpeakers() {
     }
     
     speakers.forEach(s => {
-      list.innerHTML += `<li class="p-3 flex justify-between items-center border-b">
+      const li = document.createElement('li');
+      li.className = 'item-list-row';
+      li.innerHTML = `
         <div>
-          <span class="font-bold">${esc(s.full_name)}</span> 
-          (${esc(s.speaker_ref)}) - ${esc(s.title || '')}
+          <span class="title-bold">${esc(s.full_name)}</span> 
+          (${esc(s.speaker_ref)}) - <span class="sub-text">${esc(s.title || '')}</span>
         </div>
-        <button class="text-red-500 text-sm hover:underline" onclick="delSpeaker(${s.id})">Delete</button>
-      </li>`;
+        <button class="btn btn-danger btn-sm delete-sp-btn">Delete</button>
+      `;
+
+      // Safe, dynamic event binding
+      const delBtn = li.querySelector('.delete-sp-btn');
+      if (delBtn) {
+        delBtn.addEventListener('click', () => delSpeaker(s.id));
+      }
+
+      list.appendChild(li);
     });
   } catch (err) {
     console.error('Failed to load speakers:', err);
@@ -42,7 +52,7 @@ window.delSpeaker = async function(id) {
   try {
     const res = await fetch(`/api/admin/speakers/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${adminState.token}` }
+      headers: { 'Authorization': `Bearer ${window.adminState.token}` }
     });
     if (res.ok) {
       loadSpeakers();
@@ -71,11 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       
       try {
-        const res = await fetch(`/api/admin/conferences/${adminState.currentConfId}/speakers`, {
+        const res = await fetch(`/api/admin/conferences/${window.adminState.currentConfId}/speakers`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminState.token}`
+            'Authorization': `Bearer ${window.adminState.token}`
           },
           body: JSON.stringify(payload)
         });
