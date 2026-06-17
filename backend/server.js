@@ -3,7 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const path = require('path');
-const fs = require('fs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -427,56 +426,7 @@ app.get('/api/admin/attendees', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ========================
-// SEEDING SCRIPT
-// ========================
-async function seedDatabase() {
-  try {
-    const confCheck = await pool.query("SELECT * FROM conferences WHERE slug = 'bekcan2026'");
-    if (confCheck.rows.length === 0) {
-      console.log("Seeding BEKCAN 2026 data from schedule.json...");
-      const rawData = fs.readFileSync(path.join(__dirname, 'schedule.json'), 'utf-8');
-      const data = JSON.parse(rawData);
 
-      // Insert conference
-      const confInsert = await pool.query(
-        "INSERT INTO conferences (slug, name, start_date, end_date, venue_info, wifi_ssid, wifi_wpa) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
-        ['bekcan2026', data.conference.name, data.conference.dates[0], data.conference.dates[data.conference.dates.length - 1], data.conference.venue?.address, data.conference.wifi?.ssid, data.conference.wifi?.password]
-      );
-      const confId = confInsert.rows[0].id;
-
-      // Insert speakers
-      for (const sp of data.speakers) {
-        await pool.query(
-          "INSERT INTO speakers (conference_id, speaker_ref, full_name, title, institution, email, phone, bio, avatar_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-          [confId, sp.id, sp.name, sp.title, sp.institution, sp.email, sp.phone, sp.bio, sp.avatar]
-        );
-      }
-
-      // Insert sessions
-      for (const sess of data.sessions) {
-        const sessInsert = await pool.query(
-          "INSERT INTO sessions (conference_id, session_ref, title_tr, title_en, description_tr, description_en, start_time, end_time, room, category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
-          [confId, sess.id, sess.title_tr, sess.title_en, sess.description_tr, sess.description_en, sess.start, sess.end, sess.room, sess.category]
-        );
-        const sessId = sessInsert.rows[0].id;
-
-        // Insert session_speakers
-        if (sess.speaker_ids) {
-          for (const sp_ref of sess.speaker_ids) {
-            const spCheck = await pool.query("SELECT id FROM speakers WHERE conference_id = $1 AND speaker_ref = $2", [confId, sp_ref]);
-            if (spCheck.rows.length > 0) {
-              await pool.query("INSERT INTO session_speakers (session_id, speaker_id) VALUES ($1, $2)", [sessId, spCheck.rows[0].id]);
-            }
-          }
-        }
-      }
-      console.log("Seeding complete!");
-    }
-  } catch (err) {
-    console.error("Seeding failed: ", err.message);
-  }
-}
 
 // Fallback routing for API Docs
 app.get(/^\/api-docs/, (req, res) => {
@@ -502,7 +452,6 @@ app.get('/:slug', (req, res, next) => {
   res.sendFile(path.join(__dirname, '../frontend/public/schedule.html'));
 });
 
-app.listen(port, async () => {
+app.listen(port, () => {
   console.log(`Backend server running on http://localhost:${port}`);
-  await seedDatabase();
 });
