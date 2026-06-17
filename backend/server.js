@@ -95,6 +95,18 @@ app.post('/api/auth/login', async (req, res) => {
 // ========================
 // API: PUBLIC CONFERENCE DATA
 // ========================
+
+// GET All Conferences (Public)
+app.get('/api/conferences', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, slug, name, start_date, end_date, venue_info FROM conferences ORDER BY start_date DESC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.get('/api/conferences/:slug/schedule', async (req, res) => {
   const { slug } = req.params;
   try {
@@ -476,9 +488,18 @@ app.get(/^\/admin/, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/admin/index.html'));
 });
 
-// Fallback routing for Subdomain/Path based UI (e.g. /bekcan2026)
-app.get(/^\/.*/, (req, res) => {
+// Explicit routing for Root (Landing Page)
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+});
+
+// Subdomain/Path based UI for specific conference (e.g. /bekcan2026)
+app.get('/:slug', (req, res, next) => {
+  const { slug } = req.params;
+  if (slug.includes('.') || ['api', 'admin', 'api-docs'].includes(slug)) {
+    return next();
+  }
+  res.sendFile(path.join(__dirname, '../frontend/public/schedule.html'));
 });
 
 app.listen(port, async () => {
