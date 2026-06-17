@@ -123,13 +123,63 @@
 
                 <!-- Tabs Header -->
                 <div class="tabs-header">
-                    <button id="tab-speakers" class="tab-btn active">Speakers</button>
+                    <button id="tab-details" class="tab-btn active">Conference Details</button>
+                    <button id="tab-speakers" class="tab-btn">Speakers</button>
                     <button id="tab-sessions" class="tab-btn">Sessions</button>
+                    <button id="tab-users" class="tab-btn hidden">Organizers</button>
+                </div>
+
+                <!-- Details View -->
+                <div id="view-details">
+                    <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 14px;">Edit Conference Info</h4>
+                    <form id="edit-conf-form">
+                        <div class="form-grid" style="background-color: #f8fafc; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 24px;">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" id="edit-conf-name" class="input-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Slug (URL path)</label>
+                                <input type="text" id="edit-conf-slug" class="input-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Start Date</label>
+                                <input type="date" id="edit-conf-start" class="input-control">
+                            </div>
+                            <div class="form-group">
+                                <label>End Date</label>
+                                <input type="date" id="edit-conf-end" class="input-control">
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Venue Info</label>
+                                <textarea id="edit-conf-venue" class="input-control"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Abbreviation (e.g. CRCP 2026)</label>
+                                <input type="text" id="edit-conf-abbrev" class="input-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Logo URL (Custom logo URL)</label>
+                                <input type="text" id="edit-conf-logo" class="input-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Wi-Fi SSID</label>
+                                <input type="text" id="edit-conf-wifi-ssid" class="input-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Wi-Fi Password</label>
+                                <input type="text" id="edit-conf-wifi-wpa" class="input-control">
+                            </div>
+                            <div class="col-span-2 flex-actions" style="margin-top:0;">
+                                <button type="submit" class="btn btn-primary btn-sm">Update Conference</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Speakers View -->
-                <div id="view-speakers">
-                    <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 14px;">Add Speaker</h4>
+                <div id="view-speakers" class="hidden">
+                    <h4 id="speaker-form-title" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 14px;">Add Speaker</h4>
                     <form id="add-speaker-form">
                         <div class="form-grid" style="background-color: #f8fafc; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 24px;">
                             <div class="form-group">
@@ -165,7 +215,8 @@
                                 <textarea id="sp-bio" class="input-control"></textarea>
                             </div>
                             <div class="col-span-2 flex-actions" style="margin-top:0;">
-                                <button type="submit" class="btn btn-primary btn-sm">Add Speaker</button>
+                                <button type="button" id="cancel-edit-speaker" class="btn btn-secondary btn-sm hidden">Cancel Edit</button>
+                                <button type="submit" id="submit-speaker-btn" class="btn btn-primary btn-sm">Add Speaker</button>
                             </div>
                         </div>
                     </form>
@@ -178,7 +229,7 @@
 
                 <!-- Sessions View -->
                 <div id="view-sessions" class="hidden">
-                    <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 14px;">Add Session</h4>
+                    <h4 id="session-form-title" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 14px;">Add Session</h4>
                     <form id="add-session-form">
                         <div class="form-grid" style="background-color: #f8fafc; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 24px;">
                             <div class="form-group">
@@ -222,13 +273,39 @@
                                 <textarea id="se-desc-en" class="input-control"></textarea>
                             </div>
                             <div class="col-span-2 flex-actions" style="margin-top:0;">
-                                <button type="submit" class="btn btn-primary btn-sm">Add Session</button>
+                                <button type="button" id="cancel-edit-session" class="btn btn-secondary btn-sm hidden">Cancel Edit</button>
+                                <button type="submit" id="submit-session-btn" class="btn btn-primary btn-sm">Add Session</button>
                             </div>
                         </div>
                     </form>
                     
                     <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">Existing Sessions</h4>
                     <ul id="sessions-list" class="item-list">
+                        <!-- Filled dynamically -->
+                    </ul>
+                </div>
+
+                <!-- Users View -->
+                <div id="view-users" class="hidden">
+                    <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 14px;">Add Organizer</h4>
+                    <form id="add-user-form">
+                        <div class="form-grid" style="background-color: #f8fafc; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 24px;">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" id="usr-username" class="input-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="usr-password" class="input-control" required>
+                            </div>
+                            <div class="col-span-2 flex-actions" style="margin-top:0;">
+                                <button type="submit" class="btn btn-primary btn-sm">Add User</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">Existing Organizers</h4>
+                    <ul id="users-list" class="item-list">
                         <!-- Filled dynamically -->
                     </ul>
                 </div>
@@ -243,5 +320,6 @@
     <script src="/admin/js/dashboard.js"></script>
     <script src="/admin/js/speakers.js"></script>
     <script src="/admin/js/sessions.js"></script>
+    <script src="/admin/js/users.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 /**
  * File: frontend/admin/js/dashboard.js
- * Description: Renders the admin home dashboard, loads conferences list, creates conferences, handles admin users, and handles deletions.
- * Version: 1.1.0
+ * Description: Renders the admin home dashboard, loads conferences list, creates/updates conferences, and handles deletions.
+ * Version: 1.2.0
  * Project: BEKCAN CMA (Conference Management App)
  */
 
@@ -51,14 +51,13 @@ async function loadConferences() {
     conferences.forEach(conf => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${esc(conf.name)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          <a href="/${esc(conf.slug)}" target="_blank" class="text-blue-600 hover:underline">/${esc(conf.slug)}</a>
+        <td><strong>${esc(conf.name)}</strong></td>
+        <td>
+          <a href="/${esc(conf.slug)}" target="_blank">/${esc(conf.slug)}</a>
         </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${esc(conf.start_date ? conf.start_date.split('T')[0] : '')} - ${esc(conf.end_date ? conf.end_date.split('T')[0] : '')}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <td>${esc(conf.start_date ? conf.start_date.split('T')[0] : '')} - ${esc(conf.end_date ? conf.end_date.split('T')[0] : '')}</td>
+        <td style="text-align: right; white-space: nowrap;">
           <button class="btn btn-primary btn-sm manage-btn">Manage</button>
-          ${window.adminState.role === 'superadmin' ? `<button class="btn btn-success btn-sm add-user-btn" style="margin-left: 8px;">Add User</button>` : ''}
           ${window.adminState.role === 'superadmin' ? `<button class="btn btn-danger btn-sm delete-btn" style="margin-left: 8px;">Delete</button>` : ''}
         </td>
       `;
@@ -67,11 +66,6 @@ async function loadConferences() {
       const manageBtn = tr.querySelector('.manage-btn');
       if (manageBtn) {
         manageBtn.addEventListener('click', () => manageConf(conf.id, conf.name));
-      }
-
-      const addUserBtn = tr.querySelector('.add-user-btn');
-      if (addUserBtn) {
-        addUserBtn.addEventListener('click', () => createUser(conf.id));
       }
 
       const deleteBtn = tr.querySelector('.delete-btn');
@@ -86,26 +80,28 @@ async function loadConferences() {
   }
 }
 
-// Global scope actions
-window.createUser = async function(confId) {
-  const username = prompt("Enter new username:");
-  if (!username) return;
-  const password = prompt("Enter new password:");
-  if (!password) return;
-  
+// Global action to load and prefill conference details
+window.loadConferenceDetails = async function(id) {
   try {
-    const res = await fetch(`/api/admin/users`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${window.adminState.token}`
-      },
-      body: JSON.stringify({ username, password, role: 'organizer', conference_id: confId })
+    const res = await fetch(`/api/admin/conferences/${id}`, {
+      headers: { 'Authorization': `Bearer ${window.adminState.token}` }
     });
-    if (res.ok) alert('User created successfully!');
-    else alert('Failed to create user');
-  } catch (e) {
-    alert('Connection error');
+    if (!res.ok) throw new Error('Failed to load details');
+    
+    const conf = await res.json();
+    
+    document.getElementById('edit-conf-name').value = conf.name || '';
+    document.getElementById('edit-conf-slug').value = conf.slug || '';
+    document.getElementById('edit-conf-start').value = conf.start_date ? conf.start_date.split('T')[0] : '';
+    document.getElementById('edit-conf-end').value = conf.end_date ? conf.end_date.split('T')[0] : '';
+    document.getElementById('edit-conf-venue').value = conf.venue_info || '';
+    document.getElementById('edit-conf-abbrev').value = conf.abbreviation || '';
+    document.getElementById('edit-conf-logo').value = conf.logo_url || '';
+    document.getElementById('edit-conf-wifi-ssid').value = conf.wifi_ssid || '';
+    document.getElementById('edit-conf-wifi-wpa').value = conf.wifi_wpa || '';
+  } catch (err) {
+    console.error('Error prefilling conference details form:', err);
+    alert('Failed to load conference info');
   }
 };
 
@@ -130,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const createConfForm = document.getElementById('create-conf-form');
   const createConfSection = document.getElementById('create-conf-section');
   const showCreateBtn = document.getElementById('show-create-conf-btn');
+  const editConfForm = document.getElementById('edit-conf-form');
 
   if (showCreateBtn) {
     showCreateBtn.addEventListener('click', () => {
@@ -178,6 +175,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (err) {
         alert('Error creating conference');
+      }
+    });
+  }
+
+  if (editConfForm) {
+    editConfForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = window.adminState.currentConfId;
+      if (!id) return;
+
+      const payload = {
+        name: document.getElementById('edit-conf-name').value,
+        slug: document.getElementById('edit-conf-slug').value,
+        abbreviation: document.getElementById('edit-conf-abbrev').value,
+        start_date: document.getElementById('edit-conf-start').value,
+        end_date: document.getElementById('edit-conf-end').value,
+        venue_info: document.getElementById('edit-conf-venue').value,
+        logo_url: document.getElementById('edit-conf-logo').value,
+        wifi_ssid: document.getElementById('edit-conf-wifi-ssid').value,
+        wifi_wpa: document.getElementById('edit-conf-wifi-wpa').value
+      };
+
+      try {
+        const res = await fetch(`/api/admin/conferences/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${window.adminState.token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert('Conference details updated successfully!');
+          // Refresh conferences in the background and update title
+          loadConferences();
+          const manageTitle = document.getElementById('manage-conf-title');
+          if (manageTitle) manageTitle.textContent = `Manage: ${esc(payload.name)}`;
+        } else {
+          alert('Failed to update conference');
+        }
+      } catch (err) {
+        alert('Error updating conference details');
       }
     });
   }

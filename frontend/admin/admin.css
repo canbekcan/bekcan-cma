@@ -292,6 +292,18 @@ textarea.input-control {
   background-color: #f8fafc;
 }
 
+.admin-table td a {
+  color: var(--bg-header);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.admin-table td a:hover {
+  color: var(--bg-header-hover);
+  text-decoration: underline;
+}
+
 /* ==============================================
  * TABS LAYOUT
  * ============================================== */
