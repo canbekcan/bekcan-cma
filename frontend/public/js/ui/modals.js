@@ -1,3 +1,10 @@
+/**
+ * File: frontend/public/js/ui/modals.js
+ * Description: Manages the display overlays (Session detail popup, Speaker bio card), user feedback rating interactions, and browser notification requests.
+ * Version: 1.1.0
+ * Project: BEKCAN CMA (Conference Management App)
+ */
+
 // Handle details Modal visibility and content
 function openModal(id) {
   state.selectedSessionId = id;
@@ -203,7 +210,7 @@ function requestNotificationPermission() {
     if (permission === 'granted') {
       new Notification("BEKCAN CMA", {
         body: state.language === 'tr' ? "Bildirimler başarıyla etkinleştirildi! Powered by BEKCAN." : "Notifications enabled successfully! Powered by BEKCAN.",
-        icon: "./icon.png"
+        icon: "/icon.png"
       });
       setTimeout(() => {
         if (el.bekcanPopup) el.bekcanPopup.classList.remove('active');

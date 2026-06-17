@@ -1,4 +1,9 @@
-// BEKCAN CMA Landing Page Controller
+/**
+ * File: frontend/public/js/landing.js
+ * Description: Controller for the main BEKCAN CMA home portal page. Renders the interactive grid of all available conferences.
+ * Version: 1.1.0
+ * Project: BEKCAN CMA (Conference Management App)
+ */
 
 const state = {
   language: localStorage.getItem('bekcan_lang') || 'tr',

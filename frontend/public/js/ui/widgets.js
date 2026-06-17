@@ -1,3 +1,10 @@
+/**
+ * File: frontend/public/js/ui/widgets.js
+ * Description: Manages frontend UI updates, schedule list sorting/renders, horizontal schedule timeline tracks, and live "Now & Next" cards.
+ * Version: 1.1.0
+ * Project: BEKCAN CMA (Conference Management App)
+ */
+
 // Apply translated text labels to the DOM
 function applyLanguage(lang) {
   let dict = dictionary[lang];

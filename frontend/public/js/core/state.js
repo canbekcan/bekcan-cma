@@ -1,3 +1,10 @@
+/**
+ * File: frontend/public/js/core/state.js
+ * Description: Holds the core PWA local storage settings, active tab structures, dictionary translations, and datetime/category normalizer utilities.
+ * Version: 1.1.0
+ * Project: BEKCAN CMA (Conference Management App)
+ */
+
 // Safe Storage Wrappers
 const storage = {
   get: (key, fallback) => {

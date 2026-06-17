@@ -1,14 +1,14 @@
-const CACHE_NAME = 'bekcan-cma-v3';
+const CACHE_NAME = 'bekcan-cma-v4';
 const ASSETS = [
   '/',
   '/index.html',
   '/schedule.html',
   '/styles.css',
-  '/state.js',
-  '/ui.js',
-  '/modals.js',
-  '/app.js',
-  '/landing.js',
+  '/js/core/state.js',
+  '/js/ui/widgets.js',
+  '/js/ui/modals.js',
+  '/js/core/app.js',
+  '/js/landing.js',
   '/manifest.json',
   '/icon.png'
 ];
@@ -56,7 +56,7 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
         // Fetch fresh data in the background if possible (stale-while-revalidate for JS/CSS)
-        if (event.request.url.includes('app.js') || event.request.url.includes('state.js') || event.request.url.includes('ui.js') || event.request.url.includes('modals.js') || event.request.url.includes('styles.css') || event.request.url.includes('landing.js')) {
+        if (event.request.url.includes('app.js') || event.request.url.includes('state.js') || event.request.url.includes('widgets.js') || event.request.url.includes('modals.js') || event.request.url.includes('styles.css') || event.request.url.includes('landing.js')) {
           fetch(event.request)
             .then((networkResponse) => {
               if (networkResponse.status === 200) {
