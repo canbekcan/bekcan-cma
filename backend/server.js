@@ -33,11 +33,11 @@ app.use(helmet());
 app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
+    scriptSrc: ["'self'", "'unsafe-inline'"],
     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     imgSrc: ["'self'", "data:", "https:", "http:"],
     fontSrc: ["'self'", "https://fonts.gstatic.com"],
-    connectSrc: ["'self'", "http://localhost:4000", "https://conf.bekcan.com"]
+    connectSrc: ["'self'", "http:", "https:"]
   }
 }));
 

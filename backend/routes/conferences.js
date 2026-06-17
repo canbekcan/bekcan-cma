@@ -45,9 +45,14 @@ router.get('/:slug/schedule', async (req, res) => {
     const formattedSessions = sessionsRes.rows.map(s => {
       const s_speakers = relationsRes.rows.filter(r => r.session_id === s.id).map(r => r.speaker_ref);
       
-      const startDate = new Date(s.start_time);
-      const startStr = startDate.toISOString().split('T')[0];
-      datesSet.add(startStr);
+      let startStr = '';
+      if (s.start_time) {
+        const startDate = new Date(s.start_time);
+        if (!isNaN(startDate.getTime())) {
+          startStr = startDate.toISOString().split('T')[0];
+          datesSet.add(startStr);
+        }
+      }
 
       return {
         id: s.session_ref,
@@ -57,8 +62,8 @@ router.get('/:slug/schedule', async (req, res) => {
         title_en: s.title_en,
         description_tr: s.description_tr,
         description_en: s.description_en,
-        room: s.room,
-        category: s.category,
+        room: s.room || '',
+        category: s.category || '',
         speaker_ids: s_speakers
       };
     });

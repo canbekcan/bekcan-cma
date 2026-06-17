@@ -20,6 +20,21 @@ function toDatetimeLocal(isoStr) {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+// Helper to convert browser-local YYYY-MM-DDTHH:MM value to RFC3339/ISO string with timezone offset
+function toISOLocalString(datetimeLocalValue) {
+  if (!datetimeLocalValue) return null;
+  const d = new Date(datetimeLocalValue);
+  if (isNaN(d.getTime())) return datetimeLocalValue;
+  
+  const offset = d.getTimezoneOffset(); // e.g. -180 for UTC+3 (Turkey)
+  const absOffset = Math.abs(offset);
+  const sign = offset <= 0 ? '+' : '-';
+  const hours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+  const mins = String(absOffset % 60).padStart(2, '0');
+  
+  return `${datetimeLocalValue}:00${sign}${hours}:${mins}`;
+}
+
 async function loadSessions() {
   if (!window.adminState.currentConfId) return;
   
@@ -157,8 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
         title_en: document.getElementById('se-title-en').value,
         room: document.getElementById('se-room').value,
         category: document.getElementById('se-cat').value,
-        start_time: document.getElementById('se-start').value,
-        end_time: document.getElementById('se-end').value,
+        start_time: toISOLocalString(document.getElementById('se-start').value),
+        end_time: toISOLocalString(document.getElementById('se-end').value),
         description_tr: document.getElementById('se-desc-tr').value,
         description_en: document.getElementById('se-desc-en').value,
         speaker_ids: spRefStr ? spRefStr.split(',').map(s => s.trim()) : []
@@ -167,12 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         let url = `/api/admin/conferences/${window.adminState.currentConfId}/sessions`;
         let method = 'POST';
-
+ 
         if (editingSessionId !== null) {
           url = `/api/admin/sessions/${editingSessionId}`;
           method = 'PUT';
         }
-
+ 
         const res = await fetch(url, {
           method: method,
           headers: { 
@@ -186,7 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
           resetSessionEditMode();
           loadSessions();
         } else {
-          alert(editingSessionId !== null ? 'Failed to update session' : 'Failed to add session');
+          const errData = await res.json().catch(() => ({}));
+          alert((editingSessionId !== null ? 'Failed to update session' : 'Failed to add session') + (errData.error ? ': ' + errData.error : ''));
         }
       } catch (err) {
         alert('Error processing session record');

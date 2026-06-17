@@ -23,15 +23,37 @@ window.addEventListener('beforeinstallprompt', (e) => {
   }
 });
 
+// Safe UUID generator fallback for unsecure contexts (like local IP testing)
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // Initialize Application
 async function init() {
   if (!storage.get('device_id')) {
-    storage.set('device_id', crypto.randomUUID());
+    storage.set('device_id', generateUUID());
   }
 
   bindEvents();
   applyLanguage(state.language);
   await fetchSchedule();
+  
+  // Dynamically compute unique conference days in local timezone to avoid backend-frontend shifts
+  if (Array.isArray(state.sessions)) {
+    const localDates = Array.from(new Set(
+      state.sessions
+        .map(s => s.start ? getLocalDateString(parseDate(s.start)) : '')
+        .filter(Boolean)
+    )).sort();
+    state.conference.dates = localDates;
+  }
   
   // Set default day
   const todayStr = getLocalDateString(new Date());

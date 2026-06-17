@@ -171,7 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
           createConfForm.reset();
           loadConferences();
         } else {
-          alert('Failed to create conference');
+          const errData = await res.json().catch(() => ({}));
+          alert('Failed to create conference' + (errData.error ? ': ' + errData.error : ''));
         }
       } catch (err) {
         alert('Error creating conference');
@@ -213,7 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const manageTitle = document.getElementById('manage-conf-title');
           if (manageTitle) manageTitle.textContent = `Manage: ${esc(payload.name)}`;
         } else {
-          alert('Failed to update conference');
+          const errData = await res.json().catch(() => ({}));
+          alert('Failed to update conference' + (errData.error ? ': ' + errData.error : ''));
         }
       } catch (err) {
         alert('Error updating conference details');

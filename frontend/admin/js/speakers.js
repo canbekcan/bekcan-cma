@@ -168,7 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
           resetSpeakerEditMode();
           loadSpeakers();
         } else {
-          alert(editingSpeakerId !== null ? 'Failed to update speaker' : 'Failed to add speaker');
+          const errData = await res.json().catch(() => ({}));
+          alert((editingSpeakerId !== null ? 'Failed to update speaker' : 'Failed to add speaker') + (errData.error ? ': ' + errData.error : ''));
         }
       } catch (err) {
         alert('Error processing speaker record');
